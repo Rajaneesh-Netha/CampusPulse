@@ -1,3 +1,4 @@
+import { NavLink } from 'react-router-dom';
 import './Navbar.css';
 
 export default function Navbar() {
@@ -15,11 +16,10 @@ export default function Navbar() {
         </div>
 
         <div className="navbar-menu">
-          <a href="#" className="nav-link">Home</a>
-          <a href="#" className="nav-link">Submit Complaint</a>
-          <a href="#" className="nav-link">Track Status</a>
-          <a href="#" className="nav-link">Analytics</a>
-          <a href="#" className="nav-link login-link">Login</a>
+          <NavLink to="/" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>Home</NavLink>
+          <NavLink to="/complaints" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>Complaints</NavLink>
+          <NavLink to="/analytics" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>Analytics</NavLink>
+          <NavLink to="/login" className={({ isActive }) => `nav-link login-link ${isActive ? 'active' : ''}`}>Login</NavLink>
         </div>
 
       </div>

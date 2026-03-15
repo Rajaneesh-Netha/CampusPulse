@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import Logo from './Logo';
 import './Hero.css';
 
 export default function Hero() {
   const [hoverSubmit, setHoverSubmit] = useState(false);
   const [hoverTrack, setHoverTrack] = useState(false);
+  const [hoverLogin, setHoverLogin] = useState(false);
 
   return (
     <section className="hero">
@@ -30,23 +32,28 @@ export default function Hero() {
         </p>
 
         <div className="hero-buttons">
-          <button
+          <Link
+            to="/complaints"
             className={`btn-primary ${hoverSubmit ? 'active' : ''}`}
             onMouseEnter={() => setHoverSubmit(true)}
             onMouseLeave={() => setHoverSubmit(false)}
           >
             <span className="btn-icon">✉</span>
             Submit Complaint
-          </button>
+          </Link>
 
-          <button
+          <Link
+            to="/complaints"
             className={`btn-secondary ${hoverTrack ? 'active' : ''}`}
             onMouseEnter={() => setHoverTrack(true)}
             onMouseLeave={() => setHoverTrack(false)}
           >
             <span className="btn-icon">📊</span>
             Track Status
-          </button>
+          </Link>
+
+        
+        
         </div>
 
       </div>

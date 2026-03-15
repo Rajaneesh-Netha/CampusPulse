@@ -1,41 +1,23 @@
-import { useEffect } from 'react';
-import AOS from 'aos';
-import 'aos/dist/aos.css';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
 
-import Navbar from './components/Navbar';
-import AnnouncementBar from './components/AnnouncementBar';
-import Hero from './components/Hero';
-import QuickServices from './components/QuickServices';
-import Features from './components/Features';
-import Footer from './components/Footer';
+import Home from './components/Home';
+import Login from './components/Login';
+import Signup from './components/Signup';
 
 function App() {
-
-  useEffect(() => {
-
-   AOS.init({
-  duration: 800,
-  easing: 'ease-in-out',
-  once: true
-});
-
-    // Wait for layout to stabilize then refresh AOS
-    window.addEventListener('load', () => {
-      AOS.refresh();
-    });
-
-  }, []);
-
   return (
-    <>
-      <Navbar />
-      <AnnouncementBar />
-      <Hero />
-      <QuickServices />
-      <Features />
-      <Footer />
-    </>
+    <Router>
+      <div className="App">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/complaints" element={<div>Complaints Page - Coming Soon</div>} />
+          <Route path="/analytics" element={<div>Analytics Page - Coming Soon</div>} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+        </Routes>
+      </div>
+    </Router>
   );
 }
 
