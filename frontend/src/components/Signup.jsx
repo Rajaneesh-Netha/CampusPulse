@@ -6,9 +6,7 @@ import './Signup.css';
 
 export default function Signup() {
   const location = useLocation();
-  const isStudent = location.pathname.includes('/student');
   const isUser = location.pathname.includes('/user');
-
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Logo from './Logo';
 import './Hero.css';
 
@@ -7,6 +7,7 @@ export default function Hero() {
   const [hoverSubmit, setHoverSubmit] = useState(false);
   const [hoverTrack, setHoverTrack] = useState(false);
   const [hoverLogin, setHoverLogin] = useState(false);
+  const navigate = useNavigate();
 
   return (
     <section className="hero">
@@ -37,6 +38,13 @@ export default function Hero() {
             className={`btn-primary ${hoverSubmit ? 'active' : ''}`}
             onMouseEnter={() => setHoverSubmit(true)}
             onMouseLeave={() => setHoverSubmit(false)}
+            onClick={(e) => {
+              const token = localStorage.getItem('token');
+              if (!token) {
+                e.preventDefault();
+                navigate('/login');
+              }
+            }}
           >
             <span className="btn-icon">✉</span>
             Submit Complaint
