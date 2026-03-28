@@ -42,7 +42,7 @@ export default function Hero() {
               const token = localStorage.getItem('token');
               if (!token) {
                 e.preventDefault();
-                navigate('/login');
+                navigate('/student/login');
               }
             }}
           >
