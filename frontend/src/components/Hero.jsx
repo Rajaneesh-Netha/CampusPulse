@@ -38,6 +38,16 @@ export default function Hero() {
             className={`btn-primary ${hoverSubmit ? 'active' : ''}`}
             onMouseEnter={() => setHoverSubmit(true)}
             onMouseLeave={() => setHoverSubmit(false)}
+<<<<<<< HEAD
+            onClick={(e) => {
+              const token = localStorage.getItem('token');
+              if (!token) {
+                e.preventDefault();
+                navigate('/student/login');
+              }
+            }}
+=======
+>>>>>>> a49bd7dbf44c0933cfa6b33d344fd1f75aa930dd
           >
             <span className="btn-icon">✉</span>
             Submit Complaint
