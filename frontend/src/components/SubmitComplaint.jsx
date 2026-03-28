@@ -127,15 +127,19 @@ function SentimentPanel({ analysis, visible }) {
 }
 
 export default function SubmitComplaint() {
+  
 
   const navigate = useNavigate();
 
+  // TODO: re-enable auth guard once login flow is complete
+  /*
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) {
       navigate('/student/login');
     }
   }, [navigate]);
+  */
 
   const [formData, setFormData] = useState({
     title: '',
