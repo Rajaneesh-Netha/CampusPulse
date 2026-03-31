@@ -3,7 +3,7 @@
    Matches landing page palette exactly
    ========================================================= */
 
-<<<<<<< HEAD
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 /* ── Root ──────────────────────────────────────────────────── */
@@ -645,7 +645,7 @@
   .lp-card { padding: 1.7rem 1.4rem; border-radius: 18px; }
   .lp-tab  { padding: 0.5rem 0.3rem; font-size: 0.75rem; gap: 4px; }
   .lp-demo-account { flex-wrap: wrap; }
-=======
+
 .login-page {
   position: fixed;
   top: 0;
@@ -845,5 +845,4 @@
   text-align: center;
   margin-top: 1.2rem;
   font-size: 0.85rem;
->>>>>>> a49bd7dbf44c0933cfa6b33d344fd1f75aa930dd
-}
+}}

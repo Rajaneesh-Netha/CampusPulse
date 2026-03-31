@@ -6,7 +6,6 @@ import './Hero.css';
 export default function Hero() {
   const [hoverSubmit, setHoverSubmit] = useState(false);
   const [hoverTrack, setHoverTrack] = useState(false);
-  const [hoverLogin, setHoverLogin] = useState(false);
   const navigate = useNavigate();
 
   return (
@@ -38,7 +37,6 @@ export default function Hero() {
             className={`btn-primary ${hoverSubmit ? 'active' : ''}`}
             onMouseEnter={() => setHoverSubmit(true)}
             onMouseLeave={() => setHoverSubmit(false)}
-<<<<<<< HEAD
             onClick={(e) => {
               const token = localStorage.getItem('token');
               if (!token) {
@@ -46,8 +44,6 @@ export default function Hero() {
                 navigate('/student/login');
               }
             }}
-=======
->>>>>>> a49bd7dbf44c0933cfa6b33d344fd1f75aa930dd
           >
             <span className="btn-icon">✉</span>
             Submit Complaint
@@ -63,8 +59,6 @@ export default function Hero() {
             Track Status
           </Link>
 
-        
-        
         </div>
 
       </div>
