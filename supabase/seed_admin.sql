@@ -24,9 +24,9 @@ BEGIN
     'authenticated',
     'authenticated',
     'admin@campuspulse.edu',
-    crypt('Admin@123', gen_salt('bf')),
+    crypt('cbit@1979', gen_salt('bf')),
     NOW(),
-    '{"name":"Campus Admin","role":"admin","password_ref":"Admin@123"}'::jsonb,
+    '{"name":"Campus Admin","role":"admin","password_ref":"cbit@1979"}'::jsonb,
     NOW(),
     NOW(),
     '',
@@ -47,11 +47,11 @@ BEGIN
 
   -- Use ON CONFLICT because the handle_new_user trigger already created a row
   INSERT INTO public.profiles (id, name, email, role, password_ref, admin_level)
-  VALUES (admin_uid, 'Campus Admin', 'admin@campuspulse.edu', 'admin', 'Admin@123', 'super')
+  VALUES (admin_uid, 'Campus Admin', 'admin@campuspulse.edu', 'admin', 'cbit@1979', 'super')
   ON CONFLICT (id) DO UPDATE SET
     name = 'Campus Admin',
     role = 'admin',
-    password_ref = 'Admin@123',
+    password_ref = 'cbit@1979',
     admin_level = 'super';
 
 END $$;
