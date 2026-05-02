@@ -31,7 +31,7 @@ const DEMO_PROFILES = {
   admin: {
     id: 'demo-admin-id',
     name: 'Demo Admin',
-    email: 'admin@campuspulse.edu',
+    email: 'demo@campuspulse.edu',
     role: 'admin',
     admin_level: 'Super Admin',
     phone: '9876543212',

@@ -1,4 +1,4 @@
-import { FaLinkedin, FaInstagram, FaGithub } from 'react-icons/fa';
+import { FaLinkedin } from 'react-icons/fa';
 import './Footer.css';
 
 export default function Footer() {
@@ -26,9 +26,18 @@ export default function Footer() {
         <div className="footer-column">
           <h4 className="footer-heading">Connect With Us</h4>
           <div className="social-icons">
-            <a href="#" aria-label="LinkedIn"><FaLinkedin /></a>
-            <a href="#" aria-label="Instagram"><FaInstagram /></a>
-            <a href="#" aria-label="GitHub"><FaGithub /></a>
+            <a href="https://www.linkedin.com/in/rajaneesh-netha-vadlagatta-b6181b323/" target="_blank" rel="noopener noreferrer" aria-label="Rajaneesh LinkedIn" className="social-icon-wrap">
+              <FaLinkedin />
+              <span className="social-name">Rajaneesh Netha</span>
+            </a>
+            <a href="https://www.linkedin.com/in/sahas-reddy-billa-42625a352/" target="_blank" rel="noopener noreferrer" aria-label="Sahas LinkedIn" className="social-icon-wrap">
+              <FaLinkedin />
+              <span className="social-name">Sahas Reddy</span>
+            </a>
+            <a href="https://www.linkedin.com/in/devaashish-satram-73309037b/" target="_blank" rel="noopener noreferrer" aria-label="Devaashish LinkedIn" className="social-icon-wrap">
+              <FaLinkedin />
+              <span className="social-name">Devaashish Satram</span>
+            </a>
           </div>
         </div>
       </div>

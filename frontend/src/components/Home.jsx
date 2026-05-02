@@ -18,9 +18,10 @@ function Home() {
     });
 
     // Wait for layout to stabilize then refresh AOS
-    window.addEventListener('load', () => {
-      AOS.refresh();
-    });
+    const handleLoad = () => AOS.refresh();
+    window.addEventListener('load', handleLoad);
+
+    return () => window.removeEventListener('load', handleLoad);
   }, []);
 
   return (

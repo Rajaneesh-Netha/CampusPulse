@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import './Login.css';
 
 
-/* ── Demo credentials ─────────────────────────────────────── */
+/* ── Demo credentials (client-side only, no DB needed) ─────── */
 const DEMO_ACCOUNTS = [
   {
     role: 'student',
@@ -25,9 +25,9 @@ const DEMO_ACCOUNTS = [
   {
     role: 'admin',
     roleIndex: 2,
-    label: 'Admin',
-    id: 'admin@campuspulse.edu',
-    password: 'Admin@123',
+    label: 'Admin (Demo)',
+    id: 'demo@campuspulse.edu',
+    password: 'Demo@123',
   },
 ];
 
@@ -127,7 +127,7 @@ export default function Login() {
 
       // ── Check if this is a demo account (client-side only) ──
       const demoMatch = DEMO_ACCOUNTS.find(
-        d => d.id === email && d.password === password
+        d => d.id.toLowerCase() === email.toLowerCase() && d.password === password
       );
       if (demoMatch) {
         // Demo mode — set auth state and navigate
@@ -152,18 +152,24 @@ export default function Login() {
       }
 
       // Sign in with Supabase
-      const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
+      const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
       if (signInErr) {
-        setAuthError('Incorrect password or account not found.');
+        console.error('Supabase signIn error:', signInErr);
+        // Handle 500 errors from corrupted auth.users rows
+        if (signInErr.status === 500 || signInErr.message?.includes('500')) {
+          setAuthError('Server error — the database accounts may need to be re-seeded. Try using the Demo accounts below instead.');
+        } else {
+          setAuthError(signInErr.message || 'Incorrect password or account not found.');
+        }
         return;
       }
 
       // Verify role matches selected tab
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user: authUser } } = await supabase.auth.getUser();
       const { data: prof } = await supabase
         .from('profiles')
         .select('role')
-        .eq('id', user.id)
+        .eq('id', authUser.id)
         .single();
 
       if (prof?.role !== role.id) {
