@@ -140,3 +140,33 @@ export async function changePassword(newPassword) {
   const { error } = await supabase.auth.updateUser({ password: newPassword })
   if (error) throw error
 }
+
+/* ── Submit feedback for a resolved complaint ──────────────── */
+export async function submitFeedback({ complaintId, inchargeId, studentId, rating, comment, anonymous }) {
+  const { data, error } = await supabase
+    .from('feedback')
+    .insert({
+      complaint_id: complaintId,
+      incharge_id: inchargeId,
+      student_id: studentId,
+      rating,
+      comment: comment || '',
+      anonymous: anonymous || false,
+    })
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+/* ── Check if feedback already submitted for a complaint ───── */
+export async function checkFeedbackExists(complaintId, studentId) {
+  const { data, error } = await supabase
+    .from('feedback')
+    .select('id')
+    .eq('complaint_id', complaintId)
+    .eq('student_id', studentId)
+    .limit(1)
+  if (error) return false
+  return data && data.length > 0
+}

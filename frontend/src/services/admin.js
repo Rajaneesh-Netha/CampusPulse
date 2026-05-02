@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase'
+import { supabase, supabaseAdmin } from '../lib/supabase'
 
 /* ── Get all complaints (admin view) ───────────────────────── */
 export async function getAllComplaints() {
@@ -35,18 +35,52 @@ export async function getAllStudents() {
   return data
 }
 
-/* ── Create incharge via database RPC ──────────────────────── */
+/* ── Create incharge via Supabase Auth Admin API ─────────────
+   Uses service_role key to create a proper auth user, then
+   updates the profile with in-charge specific fields.
+   This avoids the broken raw-SQL approach that corrupted GoTrue.
+   ─────────────────────────────────────────────────────────── */
 export async function createIncharge({ name, email, block, designation, phone }) {
-  const { data, error } = await supabase.rpc('create_incharge', {
-    p_name: name,
-    p_email: email,
-    p_block: block,
-    p_designation: designation || '',
-    p_phone: phone || ''
+  if (!supabaseAdmin) throw new Error('Admin client not configured (missing service key)')
+
+  // Generate temp password and employee ID
+  const tempPassword = 'IC@' + Math.random().toString(36).slice(2, 10)
+
+  // Get next employee ID
+  const { count } = await supabase
+    .from('profiles')
+    .select('*', { count: 'exact', head: true })
+    .eq('role', 'incharge')
+  const empId = 'IC-' + new Date().getFullYear() + '-' + String((count || 0) + 1).padStart(3, '0')
+
+  // Step 1: Create auth user via Admin API (proper GoTrue way)
+  const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
+    email,
+    password: tempPassword,
+    email_confirm: true,
+    user_metadata: { name, role: 'incharge', password_ref: tempPassword },
   })
-  if (error) throw error
-  if (data?.error) throw new Error(data.error)
-  return data // { email, tempPassword, employeeId, name, block }
+  if (authError) throw authError
+
+  // Step 2: Update the profile (trigger may have created a basic row)
+  const { error: profileError } = await supabaseAdmin
+    .from('profiles')
+    .upsert({
+      id: authUser.user.id,
+      name,
+      email,
+      role: 'incharge',
+      employee_id: empId,
+      designation: designation || 'In-Charge',
+      assigned_block: block,
+      phone: phone || '',
+      password_ref: tempPassword,
+      password_reset_required: true,
+      is_active: true,
+    }, { onConflict: 'id' })
+  if (profileError) throw profileError
+
+  return { email, tempPassword, employeeId: empId, name, block }
 }
 
 /* ── Toggle incharge active status ─────────────────────────── */
@@ -58,12 +92,20 @@ export async function toggleInchargeStatus(userId, currentStatus) {
   if (error) throw error
 }
 
-/* ── Remove incharge (deactivate, don't delete) ─────────────── */
+/* ── Remove incharge (deactivate) ────────────────────────────── */
 export async function removeIncharge(userId) {
   const { error } = await supabase
     .from('profiles')
     .update({ is_active: false })
     .eq('id', userId)
+  if (error) throw error
+}
+
+/* ── Permanently delete incharge (removes auth user too) ───── */
+export async function deleteInchargePermanently(userId) {
+  if (!supabaseAdmin) throw new Error('Admin client not configured')
+  // Delete auth user (cascades to profiles via FK)
+  const { error } = await supabaseAdmin.auth.admin.deleteUser(userId)
   if (error) throw error
 }
 

@@ -9,9 +9,12 @@ import {
   getNotifications, 
   markAllNotificationsRead,
   updateProfile,
-  changePassword 
+  changePassword,
+  submitFeedback,
+  checkFeedbackExists
 } from '../services/complaints';
 import './StudentDashboard.css';
+import LoadingScreen from './LoadingScreen';
 
 /* ─── AI Sentiment Engine (Keyword / Pattern NLP) ─── */
 const NEG_WORDS = [
@@ -145,6 +148,14 @@ export default function StudentDashboard() {
   const [sentiment, setSentiment] = useState(null);
   const sentTimer = useRef(null);
 
+  /* Feedback modal state */
+  const [feedbackTarget, setFeedbackTarget] = useState(null);
+  const [fbRating, setFbRating] = useState(0);
+  const [fbComment, setFbComment] = useState('');
+  const [fbAnonymous, setFbAnonymous] = useState(false);
+  const [fbSubmitting, setFbSubmitting] = useState(false);
+  const [fbSubmitted, setFbSubmitted] = useState({});
+
   useEffect(() => {
     if (user) {
       loadData();
@@ -249,15 +260,7 @@ export default function StudentDashboard() {
   const resolved = complaints.filter(c => c.status === 'Resolved').length;
 
   if (isLoading || !profile) {
-    return (
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        height: '100vh', background: '#0f172a', color: '#fff', fontSize: '1.2rem', gap: '1rem'
-      }}>
-        <div className="sd-loading-spinner" />
-        Loading your dashboard…
-      </div>
-    );
+    return <LoadingScreen message="Loading your dashboard…" />;
   }
 
   const initials = profile.name ? profile.name.split(' ').map(n => n[0]).join('').toUpperCase() : '??';
@@ -421,7 +424,7 @@ export default function StudentDashboard() {
                     <div key={n.id} className="sd-notif-preview-row">
                       <span className="sd-notif-preview-icon" style={{ background: NOTIF_BG[n.type], color: NOTIF_COLOR[n.type] }}>{NOTIF_ICON[n.type]}</span>
                       <span className="sd-notif-preview-msg">{n.message}</span>
-                      <span className="sd-notif-preview-time">{n.time}</span>
+                      <span className="sd-notif-preview-time">{n.created_at ? new Date(n.created_at).toLocaleString('en-IN', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }) : ''}</span>
                     </div>
                   ))}
                 </div>
@@ -738,11 +741,139 @@ export default function StudentDashboard() {
                     </span>
                     <div className="sd-notif-body">
                       <p className="sd-notif-msg">{n.message}</p>
-                      <p className="sd-notif-time">{n.time}</p>
+                      <p className="sd-notif-time">{n.created_at ? new Date(n.created_at).toLocaleString('en-IN', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }) : ''}</p>
                     </div>
                     {!n.read && <div className="sd-notif-unread-dot" />}
+                    {n.type === 'resolved' && n.complaint_id && !fbSubmitted[n.complaint_id] && (
+                      <button
+                        className="sd-feedback-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const comp = complaints.find(c => c.id === n.complaint_id);
+                          if (comp) {
+                            setFeedbackTarget(comp);
+                            setFbRating(0);
+                            setFbComment('');
+                            setFbAnonymous(false);
+                          }
+                        }}
+                      >
+                        ⭐ Rate Experience
+                      </button>
+                    )}
+                    {n.type === 'resolved' && n.complaint_id && fbSubmitted[n.complaint_id] && (
+                      <span className="sd-feedback-done">✅ Feedback submitted</span>
+                    )}
                   </div>
                 ))}
+                {notifications.length === 0 && (
+                  <div className="sd-empty">No notifications yet. You'll be notified when your complaints are updated.</div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── FEEDBACK MODAL ──────────────────────────────── */}
+        {feedbackTarget && (
+          <div className="sd-modal-overlay" onClick={() => setFeedbackTarget(null)}>
+            <div className="sd-modal" onClick={e => e.stopPropagation()}>
+              <div className="sd-modal-header">
+                <div>
+                  <span className="sd-modal-id">{feedbackTarget.id}</span>
+                  <h3 className="sd-modal-title">Rate Your Experience</h3>
+                  <p style={{ fontSize: '0.82rem', color: '#64748b', marginTop: '4px' }}>
+                    How was the resolution of "{feedbackTarget.title}"?
+                  </p>
+                </div>
+                <button className="sd-modal-close" onClick={() => setFeedbackTarget(null)}>✕</button>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+                {/* Star Rating */}
+                <div style={{ textAlign: 'center' }}>
+                  <p style={{ fontSize: '0.82rem', fontWeight: 600, color: '#374151', marginBottom: '0.5rem' }}>Your Rating</p>
+                  <div style={{ display: 'flex', justifyContent: 'center', gap: '0.3rem' }}>
+                    {[1,2,3,4,5].map(star => (
+                      <span
+                        key={star}
+                        onClick={() => setFbRating(star)}
+                        style={{
+                          fontSize: '2rem',
+                          cursor: 'pointer',
+                          color: star <= fbRating ? '#f59e0b' : '#e2e8f0',
+                          transition: 'transform 0.15s, color 0.15s',
+                          transform: star <= fbRating ? 'scale(1.1)' : 'scale(1)',
+                        }}
+                      >★</span>
+                    ))}
+                  </div>
+                  <p style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '4px' }}>
+                    {fbRating === 0 && 'Select a rating'}
+                    {fbRating === 1 && '😞 Poor'}
+                    {fbRating === 2 && '😐 Below Average'}
+                    {fbRating === 3 && '🙂 Average'}
+                    {fbRating === 4 && '😊 Good'}
+                    {fbRating === 5 && '🤩 Excellent!'}
+                  </p>
+                </div>
+
+                {/* Comment */}
+                <div>
+                  <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '0.4rem' }}>Comment (optional)</label>
+                  <textarea
+                    value={fbComment}
+                    onChange={e => setFbComment(e.target.value)}
+                    placeholder="Share your experience with the resolution..."
+                    rows={3}
+                    style={{
+                      width: '100%', padding: '0.7rem', borderRadius: '10px',
+                      border: '1.5px solid #e8eeff', fontFamily: 'inherit',
+                      fontSize: '0.85rem', resize: 'vertical', outline: 'none',
+                    }}
+                  />
+                </div>
+
+                {/* Anonymous toggle */}
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem', color: '#64748b', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={fbAnonymous} onChange={e => setFbAnonymous(e.target.checked)} />
+                  Submit anonymously
+                </label>
+
+                {/* Submit */}
+                <button
+                  disabled={fbRating === 0 || fbSubmitting}
+                  onClick={async () => {
+                    setFbSubmitting(true);
+                    try {
+                      await submitFeedback({
+                        complaintId: feedbackTarget.id,
+                        inchargeId: feedbackTarget.incharge_id,
+                        studentId: user.id,
+                        rating: fbRating,
+                        comment: fbComment,
+                        anonymous: fbAnonymous,
+                      });
+                      setFbSubmitted(p => ({ ...p, [feedbackTarget.id]: true }));
+                      setFeedbackTarget(null);
+                    } catch (err) {
+                      alert('Failed to submit feedback: ' + err.message);
+                    } finally {
+                      setFbSubmitting(false);
+                    }
+                  }}
+                  style={{
+                    padding: '0.7rem',
+                    background: fbRating > 0 ? 'linear-gradient(135deg, #667eea, #764ba2)' : '#e2e8f0',
+                    color: fbRating > 0 ? 'white' : '#94a3b8',
+                    border: 'none', borderRadius: '10px',
+                    fontSize: '0.9rem', fontWeight: 700, fontFamily: 'inherit',
+                    cursor: fbRating > 0 ? 'pointer' : 'default',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  {fbSubmitting ? 'Submitting...' : '⭐ Submit Feedback'}
+                </button>
               </div>
             </div>
           </div>

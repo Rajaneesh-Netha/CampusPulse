@@ -1,5 +1,6 @@
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import LoadingScreen from './LoadingScreen'
 
 const ROLE_HOME = {
   student:  '/student/dashboard',
@@ -11,14 +12,7 @@ export default function ProtectedRoute({ children, allowedRole }) {
   const { user, profile, loading } = useAuth()
 
   if (loading) {
-    return (
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        height: '100vh', background: '#0f172a', color: '#fff', fontSize: '1.1rem'
-      }}>
-        Loading…
-      </div>
-    )
+    return <LoadingScreen message="Authenticating…" />
   }
 
   // Not logged in at all

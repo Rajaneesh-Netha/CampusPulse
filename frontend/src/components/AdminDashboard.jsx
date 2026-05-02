@@ -7,6 +7,7 @@ import * as adminService from '../services/admin';
 import { getAnalyticsSummary } from '../services/admin';
 import { updateComplaintStatus, updateProfile } from '../services/complaints';
 import './AdminDashboard.css';
+import LoadingScreen from './LoadingScreen';
 
 /* ─── Constants ───────────────────────────────── */
 const BLOCKS_LIST = [
@@ -63,8 +64,23 @@ function Stars({ value, max = 5, onSelect = null }) {
 
 /* ─── Empty BLOCKS check ────────────────────────────────── */
 function unassignedBlocks(incharges) {
-  const taken = new Set(incharges.filter(i => i.status === 'Active').map(i => i.block));
+  const taken = new Set(incharges.filter(i => i.is_active).map(i => i.assigned_block));
   return BLOCKS_LIST.filter(b => !taken.has(b));
+}
+
+/* ─── Enrich raw incharge profiles with computed stats ──── */
+function enrichIncharge(ic, complaints) {
+  const assigned = complaints.filter(c => c.incharge_id === ic.id);
+  const resolvedCount = assigned.filter(c => c.status === 'Resolved').length;
+  return {
+    ...ic,
+    status: ic.is_active ? 'Active' : 'Inactive',
+    block: ic.assigned_block,
+    complaints: assigned.length,
+    resolved: resolvedCount,
+    avgRating: 0,
+    feedback: [],
+  };
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -125,8 +141,9 @@ export default function AdminDashboard() {
         adminService.getAllIncharges(),
         getAnalyticsSummary()
       ]);
-      setComplaints(allC || []);
-      setIncharges(allI || []);
+      const safeComplaints = allC || [];
+      setComplaints(safeComplaints);
+      setIncharges((allI || []).map(ic => enrichIncharge(ic, safeComplaints)));
       setAnalytics(summary);
     } catch (err) {
       console.error('Error loading admin data:', err);
@@ -231,11 +248,7 @@ export default function AdminDashboard() {
   const resRate  = total > 0 ? Math.round((resolved / total) * 100) : 0;
 
   if (isLoading || !profile) {
-    return (
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100vh', background:'#0f172a', color:'#fff' }}>
-        Loading System Dashboard…
-      </div>
-    );
+    return <LoadingScreen message="Loading System Dashboard…" />;
   }
 
   const initials = profile.name ? profile.name.split(' ').map(n=>n[0]).join('').toUpperCase() : 'A';
@@ -311,8 +324,8 @@ export default function AdminDashboard() {
               <span className="ad-res-rate-val">{resRate}%</span>
               <span className="ad-res-rate-label">Resolution Rate</span>
             </span>
-            <div className="ad-notif-btn">🔔<span className="ad-notif-dot">{pending}</span></div>
-            <div className="ad-admin-chip">
+            <div className="ad-notif-btn" onClick={() => setActiveNav('complaints')} style={{ cursor: 'pointer' }} title="View pending complaints">🔔<span className="ad-notif-dot">{pending}</span></div>
+            <div className="ad-admin-chip" onClick={() => setActiveNav('profile')} style={{ cursor: 'pointer' }} title="My Profile">
               <div className="ad-admin-avatar">{initials}</div>
               <div className="ad-admin-info">
                 <span className="ad-admin-name">{profile.name}</span>
@@ -348,10 +361,10 @@ export default function AdminDashboard() {
                 <h3 className="ad-chart-title">Complaint Distribution by Block</h3>
                 <p className="ad-chart-sub">Real-time heat map of campus issues</p>
                 <div className="ad-bar-chart" style={{ height: '240px', alignItems: 'flex-end' }}>
-                  {analytics?.block_stats?.slice(0, 10).map(b => (
+                  {(analytics?.byBlock || analytics?.block_stats || []).slice(0, 10).map(b => (
                     <div key={b.block} className="ad-bar-group">
-                      <div className="ad-bar ad-bar--raised" style={{ height: `${(b.count / (analytics.total || 1)) * 100 * 2}%`, minHeight:'4px' }}>
-                        <span className="ad-bar-tip">{b.count}</span>
+                      <div className="ad-bar ad-bar--raised" style={{ height: `${((b.count || b.total || 0) / (analytics.total || 1)) * 100 * 2}%`, minHeight:'4px' }}>
+                        <span className="ad-bar-tip">{b.count || b.total || 0}</span>
                       </div>
                       <span className="ad-bar-day" style={{ fontSize: '0.65rem' }}>{b.block.replace('Block ', '')}</span>
                     </div>
@@ -793,10 +806,10 @@ export default function AdminDashboard() {
             </div>
             <div className="ad-modal-grid">
               {[
-                ['Student', `${selected.student} (${selected.rollNo})`],
+                ['Student', `${selected.student?.name || 'Unknown'} (${selected.student?.roll_no || 'N/A'})`],
                 ['Location', selected.block],
-                ['In-Charge', selected.incharge],
-                ['Filed On', selected.date],
+                ['In-Charge', selected.incharge?.name || 'Unassigned'],
+                ['Filed On', selected.date || new Date(selected.created_at).toLocaleDateString()],
                 ['Category', selected.category],
                 ['Priority', selected.priority],
               ].map(([k,v]) => (
@@ -965,7 +978,7 @@ function renderTable(rows, updateStatus, setSelected, showIncharge) {
             </div>
             <span className="ad-tag" style={{ background:'#eef2ff', color:'#667eea' }}>{c.category}</span>
             <span className="ad-col-block">{c.block}</span>
-            {showIncharge && <span className="ad-col-ic">{c.assigned_incharge?.name || 'Unassigned'}</span>}
+            {showIncharge && <span className="ad-col-ic">{c.incharge?.name || 'Unassigned'}</span>}
             <span className="ad-tag" style={{ color: PRIORITY_COLOR[c.priority], background: PRIORITY_BG[c.priority] }}>{c.priority}</span>
             <span className="ad-tag" style={{ color: STATUS_COLOR[c.status],   background: STATUS_BG[c.status] }}>{c.status}</span>
             <div className="ad-actions" onClick={e => e.stopPropagation()}>

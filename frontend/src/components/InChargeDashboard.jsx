@@ -10,6 +10,7 @@ import {
   changePassword 
 } from '../services/complaints';
 import './InChargeDashboard.css';
+import LoadingScreen from './LoadingScreen';
 
 
 const PRIORITY_COLOR = { High: '#ef4444', Medium: '#f59e0b', Low: '#10b981' };
@@ -102,11 +103,7 @@ export default function InChargeDashboard() {
   ];
 
   if (isLoading || !profile) {
-    return (
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100vh', background:'#0f172a', color:'#fff', fontSize:'1.2rem' }}>
-        Loading Dashboard…
-      </div>
-    );
+    return <LoadingScreen message="Loading Dashboard…" />;
   }
 
   const initials = profile.name ? profile.name.split(' ').map(n=>n[0]).join('').toUpperCase() : 'IC';
