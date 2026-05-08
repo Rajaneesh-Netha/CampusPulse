@@ -1,0 +1,64 @@
+# =============================================
+# CampusPulse .gitignore
+# =============================================
+
+# ---------- Dependencies ----------
+node_modules/
+frontend/node_modules/
+
+# ---------- Environment Variables ----------
+# CRITICAL: Contains Supabase URL, anon key, and service role key
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+frontend/.env
+frontend/.env.local
+frontend/.env.development
+frontend/.env.production
+
+# ---------- Build Output ----------
+frontend/dist/
+dist/
+build/
+out/
+
+# ---------- Logs ----------
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ---------- OS Files ----------
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+*.swp
+*.swo
+*~
+
+# ---------- Editor / IDE ----------
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ---------- Supabase Local ----------
+supabase/.temp/
+supabase/.branches/
+
+# ---------- Misc ----------
+*.tsbuildinfo
+.eslintcache
+.cache/
+coverage/

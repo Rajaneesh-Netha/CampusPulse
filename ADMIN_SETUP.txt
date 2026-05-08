@@ -1,0 +1,135 @@
+═══════════════════════════════════════════════════════════
+  CampusPulse — First-Time Admin Setup Guide
+  (Development/Production)
+═══════════════════════════════════════════════════════════
+
+STEP 1 — Create Supabase Project
+─────────────────────────────────
+1. Go to https://supabase.com → Sign up / Log in
+2. Click "New Project"
+3. Fill in: Name = CampusPulse, Password (Rajaneesh@2006), Region = closest to you
+4. Wait ~2 minutes for provisioning
+
+STEP 2 — Run Database Schema
+──────────────────────────────
+1. In your Supabase project → SQL Editor (left sidebar)
+2. Click "New query"
+3. Open and paste the entire contents of: supabase/schema.sql
+4. Click "Run"
+5. You should see "Success. No rows returned." (or similar)
+
+STEP 3 — Create Default Admin Account
+───────────────────────────────────────
+1. Go to Authentication → Users (in Supabase dashboard)
+2. Click "Add User" → "Create New User"
+3. Email:    admin@campuspulse.edu
+4. Password: Admin@CampusPulse2026
+5. Click "Create User" (DO NOT check "Send email invitation")
+
+6. Now run seed_admin.sql to set the admin role:
+   - SQL Editor → New query
+   - Paste contents of: supabase/seed_admin.sql
+   - Click "Run"
+
+7. Verify: SELECT * FROM profiles WHERE role = 'admin';
+   You should see the admin row.
+
+STEP 4 — Configure Storage Bucket
+───────────────────────────────────
+The schema.sql creates the complaint-images bucket automatically.
+If you get an error, do it manually:
+1. Storage → New bucket
+2. Name: complaint-images
+3. Check "Public bucket"
+4. Save
+
+STEP 5 — Configure Frontend Environment
+─────────────────────────────────────────
+1. Find your credentials:
+   - Project URL: Settings → API → Project URL
+   - Anon Key:    Settings → API → anon (public)
+
+2. Create the .env file:
+   cd frontend
+   copy .env.example .env    (Windows)
+   cp .env.example .env      (Mac/Linux)
+
+3. Edit frontend/.env:
+   VITE_SUPABASE_URL=https://YOUR_PROJECT_ID.supabase.co
+   VITE_SUPABASE_ANON_KEY=your_anon_key_here
+   VITE_SUPABASE_FUNCTIONS_URL=https://YOUR_PROJECT_ID.functions.supabase.co
+
+STEP 6 — Deploy Edge Function (for Admin to create Incharges)
+──────────────────────────────────────────────────────────────
+1. Install Supabase CLI:
+   npm install -g supabase
+
+2. Login:
+   supabase login
+
+3. Link project (use your project reference from Settings → General):
+   supabase link --project-ref YOUR_PROJECT_REF
+
+4. Deploy the Edge Function:
+   supabase functions deploy admin-create-incharge
+
+5. Set the service role secret:
+   supabase secrets set SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+   (Service Role Key: Settings → API → service_role)
+
+STEP 7 — Start the App
+────────────────────────
+   cd frontend
+   npm run dev
+
+STEP 8 — First Login
+─────────────────────
+1. Open http://localhost:5173
+2. Go to Login → Admin tab
+3. Email:    admin@campuspulse.edu
+4. Password: Admin@CampusPulse2024!
+
+⚠️  IMPORTANT: Change the admin password immediately after first login!
+     → Admin Dashboard → Settings → Change Password
+
+═══════════════════════════════════════════════════════════
+  DEFAULT CREDENTIALS (CHANGE IMMEDIATELY)
+═══════════════════════════════════════════════════════════
+
+  Admin:
+    Email:    admin@campuspulse.edu
+    Password: Admin@CampusPulse2026
+
+  Demo Student (read-only, no DB):
+    Email:    student@campuspulse.edu
+    Password: demo
+
+  Demo In-Charge (read-only, no DB):
+    Email:    incharge@campuspulse.edu
+    Password: demo
+
+═══════════════════════════════════════════════════════════
+  CREATING INCHARGE ACCOUNTS (Admin Only)
+═══════════════════════════════════════════════════════════
+
+1. Log in as Admin
+2. Go to Admin Dashboard → Users → Add In-Charge
+3. Fill: Name, Email, Block, Designation
+4. Submit — the Edge Function creates the Supabase Auth user
+5. A temporary password is shown ONCE — copy it for the incharge
+6. The incharge logs in and is FORCED to change their password
+
+Temporary password if not set:  CampusPulse@123
+
+═══════════════════════════════════════════════════════════
+  SECURITY NOTES
+═══════════════════════════════════════════════════════════
+
+✓ Never commit frontend/.env to version control
+✓ The SUPABASE_SERVICE_ROLE_KEY is ONLY in Edge Function secrets
+✓ RLS policies are enforced at the database layer
+✓ Demo accounts are client-side only — no Supabase calls
+✓ Back-button after logout is blocked via popstate listener
+✓ All passwords are hashed by Supabase Auth (bcrypt)
+
+═══════════════════════════════════════════════════════════
